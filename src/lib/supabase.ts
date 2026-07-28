@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/Bolt Database-js';
 
 const supabaseUrl =
   (import.meta.env.VITE_SUPABASE_URL as string | undefined) ??
@@ -9,4 +9,4 @@ const supabaseAnonKey =
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const Bolt Database = createClient(supabaseUrl, supabaseAnonKey);
