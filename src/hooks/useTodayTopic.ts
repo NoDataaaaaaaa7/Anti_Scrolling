@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import type { Topic, Category } from '@/types';
 
 export function useTopicByCategory(category: Category) {
@@ -11,6 +11,16 @@ export function useTopicByCategory(category: Category) {
     let cancelled = false;
     (async () => {
       setLoading(true);
+      setError(null);
+
+      if (!isSupabaseConfigured) {
+        setError(
+          'Подключение к базе данных не настроено. Добавьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в переменные окружения хостинга.'
+        );
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('topics')
         .select('*')
