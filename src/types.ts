@@ -36,5 +36,5 @@ export interface Topic {
   intro: string;
   content: TopicContent;
   image_url: string;
-  created_at: string;
+  publish_date: string;
 }

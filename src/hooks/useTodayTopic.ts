@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import topicsData from '@/data/topics.json';
 import type { Topic, Category } from '@/types';
+import { CATEGORIES } from '@/constants';
+
+const topics = topicsData as Topic[];
+
+function getLocalDateKey(date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export function useTopicByCategory(category: Category) {
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -8,42 +18,23 @@ export function useTopicByCategory(category: Category) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
+    setLoading(true);
+    setError(null);
 
-      if (!isSupabaseConfigured) {
-        setError(
-          'Подключение к базе данных не настроено. Добавьте VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY в переменные окружения хостинга.'
-        );
-        setLoading(false);
-        return;
-      }
+    const today = getLocalDateKey();
+    const todaysTopic = topics.find(
+      (item) => item.category === category && item.publish_date === today
+    );
 
-      const { data, error } = await supabase
-        .from('topics')
-        .select('*')
-        .eq('category', category)
-        .order('created_at', { ascending: true });
-      if (cancelled) return;
-      if (error) {
-        setError('Не удалось загрузить тему. Проверьте подключение.');
-        setLoading(false);
-        return;
-      }
-      if (!data || data.length === 0) {
-        setError('В этой сфере тем пока нет.');
-        setLoading(false);
-        return;
-      }
-      const dayIndex = Math.floor(Date.now() / 86400000) % data.length;
-      setTopic(data[dayIndex] as Topic);
+    if (!todaysTopic) {
+      setTopic(null);
+      setError(`Статья в разделе «${CATEGORIES[category].label}» на ${today} ещё не опубликована.`);
       setLoading(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
+      return;
+    }
+
+    setTopic(todaysTopic);
+    setLoading(false);
   }, [category]);
 
   return { topic, loading, error };
